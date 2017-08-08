@@ -1,0 +1,6 @@
+spring:
+  profiles: local
+server:
+  contextPath: /nemswiftsvc
+management:
+  port: 8012
