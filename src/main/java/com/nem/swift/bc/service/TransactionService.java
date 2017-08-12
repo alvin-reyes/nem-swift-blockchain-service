@@ -34,7 +34,7 @@ import io.nem.util.GzipUtils;
 @RestController
 @RequestMapping("/transaction")
 @EnableAsync
-@CrossOrigin("http://localhost:4200")
+@CrossOrigin(origins = { "http://localhost:4200", "http://alvinpreyes.com", "http://arcabots.com" })
 public class TransactionService {
 
 	@RequestMapping(method = RequestMethod.POST, path = "/send")
@@ -60,6 +60,32 @@ public class TransactionService {
 		return new TransactionResponse(request, Status.SUCCESS, "Transfer In Progress");
 	}
 
+	@RequestMapping(method = RequestMethod.POST, path = "/send/multisig")
+	public TransactionResponse sentMultiSig(@RequestBody TransactionRequest request) {
+
+		final Account senderAccount = EntityFactory
+				.buildAccountFromPrivateKey(request.getSenderAddress());
+		final Account recipientAccount = EntityFactory
+				.buildAccountFromPublicKey(request.getReceiptAddress());
+		final Account multiSig = EntityFactory
+				.buildAccountFromPublicKey(request.getMultiSig());
+		
+		SecureMessage message;
+		try {
+
+			message = SecureMessageSwiftPayloadEncoder.encodeAndGzipCompress(senderAccount, recipientAccount,
+					request.getSwiftMessage());
+
+			SwiftBlockchainTransactionBuilder.getInstance().setSender(senderAccount).setRecipient(recipientAccount)
+					.setMultisig(multiSig).setAttachment(AttachmentFactory.createTransferTransactionAttachment(message))
+					.buildAndSendMultisigTransaction(); // build and send it!
+
+		} catch (Exception e) {
+			return new TransactionResponse(request, Status.FAILED, e.getMessage());
+		}
+		return new TransactionResponse(request, Status.SUCCESS, "Transfer In Progress");
+	}
+
 	@RequestMapping(method = RequestMethod.POST, path = "/decode", produces = "application/json")
 	public TransactionDecodeResponse getDecodedMessage(@RequestBody TransactionRequest request) {
 		try {
@@ -69,7 +95,7 @@ public class TransactionService {
 
 			String decode = SecureMessageSwiftPayloadDecoder.decodeAndGzipUncompress(senderKeyPair, recipientKeyPair,
 					request.getSwiftMessage());
-			
+
 			return new TransactionDecodeResponse(decode);
 		} catch (IOException e) {
 			e.printStackTrace();

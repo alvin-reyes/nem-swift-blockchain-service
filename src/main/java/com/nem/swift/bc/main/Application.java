@@ -23,7 +23,8 @@ public class Application {
     public EmbeddedServletContainerCustomizer containerCustomizer() {
         return (container -> {
         	container.setContextPath("/nemswiftsvc");
-            container.setPort(8013);
+//            container.setPort(Integer.valueOf(8013));	
+            container.setPort(Integer.valueOf(System.getenv("PORT")));
         });
     }
 	

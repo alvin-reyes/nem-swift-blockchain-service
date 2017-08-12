@@ -10,6 +10,17 @@ public class TransactionRequest {
 	@JsonProperty("receipt")
 	private String receiptAddress;
 	
+	@JsonProperty("multisig")
+	private String multiSig;
+	
+	public String getMultiSig() {
+		return multiSig;
+	}
+
+	public void setMultiSig(String multiSig) {
+		this.multiSig = multiSig;
+	}
+
 	@JsonProperty("swift")
 	private String swiftMessage;
 
